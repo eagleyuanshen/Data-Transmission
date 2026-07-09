@@ -1,0 +1,921 @@
+<html lang="zh-CN">
+
+<head>
+    <title>私家传送站 | 商务文件枢纽</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="私密、高效的企业级文件与剪贴板传输工具 · 时间中枢">
+    <!-- 引入 Lunar 农历库 (轻量可靠) -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript@1.6.9/lunar.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f2f5;
+            padding: 20px 16px;
+            color: #1e293b;
+        }
+
+        /* 商务主色调 */
+        :root {
+            --primary: #1e5af7;
+            --primary-dark: #0a46d4;
+            --primary-light: #eef3ff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-900: #0f172a;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* 合并后的一体卡片：品牌 + 时间中枢 */
+        .unified-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .brand-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-compact h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1e5af7 0%, #2b3b6e 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            line-height: 1.2;
+        }
+
+        .brand-badge {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .brand-badge span {
+            background: var(--gray-100);
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .time-compact {
+            text-align: right;
+            min-width: 180px;
+        }
+
+        .clock-live {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #0f172a;
+            background: var(--gray-50);
+            padding: 2px 10px;
+            border-radius: 48px;
+            border: 1px solid var(--gray-200);
+            line-height: 1.3;
+            display: inline-block;
+        }
+
+        .date-stack {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 0.75rem;
+        }
+
+        .solar-date {
+            font-weight: 600;
+            color: var(--gray-900);
+            background: var(--gray-100);
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .weekday {
+            color: var(--gray-600);
+            background: var(--gray-100);
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .lunar-date {
+            color: var(--primary-dark);
+            background: var(--primary-light);
+            padding: 2px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 卡片样式 - 紧凑间距 */
+        .card {
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.2rem;
+            margin-bottom: 0.9rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 0.9rem;
+            border-bottom: 1.5px solid var(--gray-100);
+            padding-bottom: 0.5rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            letter-spacing: -0.2px;
+            margin: 0;
+        }
+
+        .card-header .icon {
+            font-size: 1.3rem;
+        }
+
+        /* 表单元素间距缩小 */
+        input,
+        textarea,
+        button {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input,
+        textarea {
+            border: 1.5px solid var(--gray-200);
+            background-color: white;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 90, 247, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            border: none;
+            font-weight: 550;
+            cursor: pointer;
+            background-color: var(--primary);
+            color: white;
+        }
+
+        button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--primary);
+            border: 1.5px solid var(--gray-200);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-50);
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 6px 0 0;
+        }
+
+        .button-group button {
+            flex: 1;
+            margin: 0;
+        }
+
+        /* 进度条组件 */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--gray-200);
+            border-radius: 10px;
+            margin: 12px 0 6px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), #4791ff);
+            border-radius: 10px;
+            transition: width 0.25s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--primary);
+            display: none;
+            margin-top: 4px;
+        }
+
+        .result {
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: var(--gray-50);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            color: var(--gray-700);
+            border-left: 3px solid var(--primary);
+            word-break: break-word;
+        }
+
+        /* 文件列表紧凑 */
+        .file-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--gray-50);
+            border-radius: 10px;
+            padding: 6px 10px;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .file-item:hover {
+            background: white;
+            border-color: var(--gray-200);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .file-name {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-900);
+            word-break: break-all;
+            text-decoration: none;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-name:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .file-date {
+            font-size: 0.65rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .preview-btn {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--gray-300);
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            width: auto;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .preview-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .refresh-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .refresh-row button {
+            width: auto;
+            padding: 6px 16px;
+            font-size: 0.75rem;
+            background: white;
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+            box-shadow: none;
+        }
+
+        .refresh-row button:hover {
+            background: var(--gray-50);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* 剪贴板预览 */
+        #clipPreview {
+            margin-top: 8px;
+            display: none;
+            border: 1px dashed var(--gray-300);
+            border-radius: var(--radius-sm);
+            padding: 8px;
+            text-align: center;
+        }
+        #clipPreview img {
+            max-height: 120px;
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        /* 模态框 */
+        #imageModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 20, 40, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #modalImage {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            border-radius: 16px;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        #closeModal {
+            margin-top: 18px;
+            background: white;
+            color: #0f172a;
+            border: none;
+            padding: 6px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            width: auto;
+            font-size: 0.85rem;
+        }
+
+        /* 移动端微调 */
+        @media (max-width: 540px) {
+            body {
+                padding: 12px;
+            }
+            .unified-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .time-compact {
+                text-align: center;
+            }
+            .date-stack {
+                justify-content: center;
+            }
+            .card {
+                padding: 0.9rem;
+            }
+            .button-group {
+                flex-direction: column;
+                gap: 6px;
+            }
+            .file-name {
+                white-space: normal;
+                word-break: break-word;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 合并卡片：品牌标题 + 动态时间（公历/星期/农历/实时时钟） -->
+        <div class="unified-card">
+            <div class="brand-compact">
+                <h1>🏢 私家传送站</h1>
+                <div class="brand-badge">
+                    <span>私有加密通道</span>
+                    <span>极速同步</span>
+                    <span>企业级</span>
+                </div>
+            </div>
+            <div class="time-compact">
+                <div class="clock-live" id="liveClock">--:--:--</div>
+                <div class="date-stack">
+                    <span class="solar-date" id="solarDate">----.--.--</span>
+                    <span class="weekday" id="weekday">---</span>
+                    <span class="lunar-date" id="lunarDate">🌙 农历</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 卡片1: 文件互传 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📎</span>
+                <h2>文件极速互传</h2>
+            </div>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="file" id="fileInput" required>
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+                <button type="submit" id="uploadBtn">⬆️ 上传至电脑</button>
+            </form>
+            <div id="uploadResult" class="result"></div>
+        </div>
+
+        <!-- 卡片2: 剪贴板协同（支持图片/文件） -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📋</span>
+                <h2>剪贴板协同（支持图片/文件）</h2>
+            </div>
+            <textarea id="clipText" rows="2" placeholder="输入文本，或粘贴图片/文件（会自动识别）"></textarea>
+            <div id="clipPreview">
+                <!-- 动态预览 -->
+            </div>
+            <div class="button-group">
+                <button id="syncToServer">📤 同步到电脑</button>
+                <button id="loadFromServer" class="btn-secondary">📥 从电脑获取</button>
+                <button id="clearClip" class="btn-secondary">🗑️ 清空</button>
+            </div>
+            <div id="clipResult" class="result"></div>
+        </div>
+
+        <!-- 卡片3: 文件库 -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📁</span>
+                <h2>已上传文件库</h2>
+            </div>
+            <div id="fileList" class="result" style="padding: 0; background: transparent; border-left: none;">
+                <div style="padding: 16px; text-align: center; font-size: 0.8rem; color: #94a3b8;">加载中...</div>
+            </div>
+            <div class="refresh-row">
+                <button id="refreshFiles">🔄 刷新列表</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片预览模态框 -->
+    <div id="imageModal">
+        <img id="modalImage" alt="预览大图">
+        <button id="closeModal">关闭预览</button>
+    </div>
+
+    <script>
+        // ================= 动态时间 & 阴历 & 星期 & 实时时钟 =================
+        function updateDateTime() {
+            const now = new Date();
+
+            // 公历日期
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            document.getElementById('solarDate').innerText = `${year}.${month}.${day}`;
+
+            // 星期
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            document.getElementById('weekday').innerText = weekdays[now.getDay()];
+
+            // 农历 (依赖 lunar-javascript)
+            try {
+                if (typeof Lunar !== 'undefined') {
+                    const lunar = Lunar.fromDate(now);
+                    const monthStr = lunar.getMonthInChinese();
+                    const dayStr = lunar.getDayInChinese();
+                    document.getElementById('lunarDate').innerHTML = `🌙 ${monthStr}${dayStr}`;
+                } else {
+                    document.getElementById('lunarDate').innerHTML = '🌙 待加载';
+                }
+            } catch (e) {
+                document.getElementById('lunarDate').innerHTML = '🌙 农历';
+            }
+
+            // 实时时钟 HH:MM:SS
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('liveClock').innerText = `${hours}:${minutes}:${seconds}`;
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ================= 全局变量 =================
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const uploadResultDiv = document.getElementById('uploadResult');
+
+        const clipText = document.getElementById('clipText');
+        const syncBtn = document.getElementById('syncToServer');
+        const loadBtn = document.getElementById('loadFromServer');
+        const clearBtn = document.getElementById('clearClip');
+        const clipResult = document.getElementById('clipResult');
+        const clipPreview = document.getElementById('clipPreview');
+
+        const refreshBtn = document.getElementById('refreshFiles');
+        const fileListDiv = document.getElementById('fileList');
+
+        let currentClipType = 'text'; // 'text' | 'image' | 'file'
+        let currentClipData = ''; // 文本或 base64 数据
+
+        // ================= 文件上传 (带进度) =================
+        uploadForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) {
+                uploadResultDiv.innerHTML = "⚠️ 请先选择文件";
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerText = "上传中...";
+            progressContainer.style.display = "block";
+            progressText.style.display = "block";
+            progressBar.style.width = "0%";
+            progressText.innerText = "0%";
+            uploadResultDiv.innerHTML = "";
+
+            const formData = new FormData();
+            formData.append('file', file);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload');
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + "%";
+                    progressText.innerText = percent + "%";
+                }
+            };
+
+            xhr.onload = () => {
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "⬆️ 上传至电脑";
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        uploadResultDiv.innerHTML = `✅ ${data.filename} 已安全送达`;
+                        loadFileList();
+                        fileInput.value = '';
+                    } catch (err) {
+                        uploadResultDiv.innerHTML = "✅ 上传成功，刷新列表可见";
+                        loadFileList();
+                    }
+                } else {
+                    uploadResultDiv.innerHTML = "❌ 上传失败，请检查后端服务";
+                }
+                setTimeout(() => {
+                    if (progressContainer.style.display === "block") {
+                        progressContainer.style.display = "none";
+                        progressText.style.display = "none";
+                    }
+                }, 1500);
+            };
+
+            xhr.onerror = () => {
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "⬆️ 上传至电脑";
+                uploadResultDiv.innerHTML = "❌ 网络错误，上传失败";
+                progressContainer.style.display = "none";
+                progressText.style.display = "none";
+            };
+            xhr.send(formData);
+        };
+
+        // ================= 剪贴板：粘贴事件 =================
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData.items;
+            let handled = false;
+            for (let item of items) {
+                if (item.type.startsWith('image/')) {
+                    // 图片
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const base64 = ev.target.result; // data:image/...
+                        currentClipType = 'image';
+                        currentClipData = base64;
+                        clipText.value = '[图片已粘贴]';
+                        showPreview(base64, 'image');
+                        clipResult.innerHTML = '🖼️ 图片已就绪，点击「同步到电脑」发送';
+                    };
+                    reader.readAsDataURL(blob);
+                    e.preventDefault();
+                    handled = true;
+                    break;
+                } else if (item.type === 'text/plain') {
+                    // 文本
+                    item.getAsString(function(text) {
+                        currentClipType = 'text';
+                        currentClipData = text;
+                        clipText.value = text;
+                        hidePreview();
+                        clipResult.innerHTML = '📝 文本已就绪';
+                    });
+                    handled = true;
+                    break;
+                } else if (item.kind === 'file') {
+                    // 文件（非图片）
+                    const file = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const base64 = ev.target.result; // data:application/...
+                        currentClipType = 'file';
+                        currentClipData = base64;
+                        clipText.value = `[文件: ${file.name}]`;
+                        showPreview(base64, 'file', file.name);
+                        clipResult.innerHTML = `📎 文件 "${file.name}" 已就绪，点击「同步到电脑」发送`;
+                    };
+                    reader.readAsDataURL(file);
+                    e.preventDefault();
+                    handled = true;
+                    break;
+                }
+            }
+            if (!handled) {
+                // 允许默认文本粘贴
+            }
+        });
+
+        // ================= 剪贴板预览 =================
+        function showPreview(data, type, filename = '') {
+            clipPreview.style.display = 'block';
+            if (type === 'image') {
+                clipPreview.innerHTML = `<img src="${data}" alt="粘贴图片">`;
+            } else if (type === 'file') {
+                clipPreview.innerHTML = `<div>📎 ${filename || '文件'} (Base64 已就绪)</div>`;
+            } else {
+                clipPreview.innerHTML = '';
+            }
+        }
+
+        function hidePreview() {
+            clipPreview.style.display = 'none';
+            clipPreview.innerHTML = '';
+        }
+
+        // ================= 剪贴板：同步到服务器 =================
+        syncBtn.onclick = async () => {
+            let dataToSend = currentClipData;
+            let typeToSend = currentClipType;
+            // 如果没有粘贴内容，但 textarea 有手写文本，则使用文本
+            if (!dataToSend && clipText.value.trim()) {
+                typeToSend = 'text';
+                dataToSend = clipText.value;
+            }
+            if (!dataToSend) {
+                clipResult.innerHTML = "📭 没有可同步的内容";
+                return;
+            }
+            try {
+                const res = await fetch('/clipboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: typeToSend, data: dataToSend })
+                });
+                const data = await res.json();
+                let msg = `📤 ${data.message || "同步成功"}`;
+                if (typeToSend === 'image') msg += ' 🖼️';
+                else if (typeToSend === 'file') msg += ' 📎';
+                clipResult.innerHTML = msg;
+            } catch (err) {
+                clipResult.innerHTML = "❌ 同步失败，服务异常";
+            }
+        };
+
+        // ================= 剪贴板：从服务器获取 =================
+        loadBtn.onclick = async () => {
+            try {
+                const res = await fetch('/clipboard');
+                const data = await res.json();
+                if (data.type && data.data) {
+                    currentClipType = data.type;
+                    currentClipData = data.data;
+                    if (data.type === 'text') {
+                        clipText.value = data.data;
+                        hidePreview();
+                        clipResult.innerHTML = `📥 文本已加载`;
+                    } else if (data.type === 'image') {
+                        clipText.value = '[图片]';
+                        showPreview(data.data, 'image');
+                        clipResult.innerHTML = `📥 图片已加载`;
+                    } else if (data.type === 'file') {
+                        clipText.value = '[文件]';
+                        showPreview(data.data, 'file');
+                        clipResult.innerHTML = `📥 文件已加载`;
+                    }
+                } else {
+                    clipResult.innerHTML = "⚠️ 服务器剪贴板为空";
+                }
+            } catch (err) {
+                clipResult.innerHTML = "❌ 获取失败";
+            }
+        };
+
+        // ================= 剪贴板：清空 =================
+        clearBtn.onclick = function() {
+            currentClipType = 'text';
+            currentClipData = '';
+            clipText.value = '';
+            hidePreview();
+            clipResult.innerHTML = '🧹 已清空';
+        };
+
+        // ================= 文件列表加载（带日期） =================
+        async function loadFileList() {
+            try {
+                const res = await fetch('/files');
+                const data = await res.json();
+                const files = data.files || [];
+                if (!files.length) {
+                    fileListDiv.innerHTML =
+                        `<div class="result" style="text-align:center; background:#fafcff; padding:12px;">📂 暂无文件，上传一个吧</div>`;
+                    return;
+                }
+
+                let html = `<div class="file-list-container">`;
+                files.forEach(item => {
+                    const file = item.name;
+                    const date = item.date || '未知';
+                    const encodedFile = encodeURIComponent(file);
+                    const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(file);
+                    let fileIcon = "📄";
+                    if (isImage) fileIcon = "🖼️";
+                    else if (/\.(pdf)$/i.test(file)) fileIcon = "📑";
+                    else if (/\.(doc|docx)$/i.test(file)) fileIcon = "📃";
+                    else if (/\.(xls|xlsx)$/i.test(file)) fileIcon = "📊";
+                    else if (/\.(zip|rar|7z)$/i.test(file)) fileIcon = "🗜️";
+                    else if (/\.(mp4|mov|avi|mkv)$/i.test(file)) fileIcon = "🎬";
+                    else if (/\.(mp3|wav|flac)$/i.test(file)) fileIcon = "🎵";
+
+                    html += `
+                            <div class="file-item">
+                                <div class="file-info">
+                                    <div class="file-icon">${fileIcon}</div>
+                                    <div style="flex:1; min-width:0;">
+                                        <a class="file-name" href="/download/${encodedFile}" title="下载 ${file}">${escapeHtml(file)}</a>
+                                        <div class="file-date">📅 ${date}</div>
+                                    </div>
+                                </div>
+                        `;
+                    if (isImage) {
+                        html +=
+                            `<button class="preview-btn" onclick="previewImage('/download/${encodedFile}')">🔍 预览</button>`;
+                    } else {
+                        html +=
+                            `<button class="preview-btn" onclick="downloadFile('/download/${encodedFile}')">⬇️ 下载</button>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+                fileListDiv.innerHTML = html;
+            } catch (error) {
+                fileListDiv.innerHTML = `<div class="result" style="color:#dc2626;">⚠️ 无法获取文件列表</div>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ================= 下载 & 预览 =================
+        window.downloadFile = function(url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.previewImage = function(url) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'flex';
+            modalImg.src = url;
+            modalImg.onerror = () => {
+                modalImg.alt = "图片加载失败";
+                modalImg.src =
+                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5' fill='%23999'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
+            };
+        };
+
+        const modal = document.getElementById('imageModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        const closeHandler = () => {
+            modal.style.display = 'none';
+            const modalImg = document.getElementById('modalImage');
+            if (modalImg) modalImg.onerror = null;
+        };
+        closeModalBtn.onclick = closeHandler;
+        modal.onclick = (e) => { if (e.target === modal) closeHandler(); };
+
+        // ================= 刷新列表 =================
+        refreshBtn.onclick = () => loadFileList();
+
+        // ================= 初始化加载 =================
+        loadFileList();
+    </script>
+</body>
+
+</html>
